@@ -1,15 +1,20 @@
 {
-  "name": "karwa-temp",
+  "name": "karwa-chauth-ki-kasam",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "audio": "node scripts/generate-audio.mjs"
   },
   "dependencies": {
+    "framer-motion": "^14.7.1",
+    "lucide-react": "^1.64.0",
     "next": "16.4.3",
+    "qrcode.react": "^4.2.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

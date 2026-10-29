@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Karwa Chauth Ki Kasam
 
-## Getting Started
+A login-free, mobile-first Karwa Chauth game. Everything runs in the browser: name, jokes, fake-husband scenes for singles, chalni camera, share card, and an optional ₹20 UPI link. Camera frames and photos are never uploaded.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Original sound files live in `public/audio`. Regenerate them with:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run audio
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If those files are missing, the site still runs and synthesizes short sounds after you tap a control.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push this repo to GitHub.
+2. In Vercel, import the repository.
+3. Framework preset: Next.js. No environment variables are required.
+4. Deploy. Camera access needs the HTTPS URL Vercel gives you.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Camera
+
+The camera starts only after **Camera Allow Karo**. Allow camera permission in the browser prompt. Leave the scene, skip, retake, or close the tab and the video tracks stop. Denied, missing, or insecure cameras can be skipped.
+
+## Payments
+
+The ₹20 button opens a UPI link. This site cannot tell whether a payment succeeded.
