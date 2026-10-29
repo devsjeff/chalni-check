@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Flow } from "../data/scenes";
 import { closingLineId } from "../data/scenes";
 import { line } from "../data/script";
+import { SponsorCard } from "../ui/SponsorCard";
 import { drawKeepsake } from "./KeepsakeCard";
 import { SelfieOptional } from "./SelfieOptional";
 
@@ -106,6 +107,7 @@ export function Finale({ flow, name, onReplay, onSwitch }: Props) {
             <button type="button" className="text-button" onClick={() => setSelfie(true)}>
               Chalni selfie
             </button>
+            <SponsorCard />
             {note ? (
               <p className="finale-note" role="status">
                 {note}

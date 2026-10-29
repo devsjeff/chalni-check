@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Optional chalni selfie, only after the finale. Camera never starts on its own.
  * The still stays on this device; nothing is uploaded.
+ * Video stays mounted so getUserMedia can attach after the live phase paints.
  */
 export function SelfieOptional({ onClose }: { onClose(): void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,6 +20,15 @@ export function SelfieOptional({ onClose }: { onClose(): void }) {
 
   useEffect(() => () => stop(), []);
 
+  useEffect(() => {
+    if (phase !== "live") return;
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!video || !stream) return;
+    video.srcObject = stream;
+    void video.play().catch(() => undefined);
+  }, [phase]);
+
   const start = async () => {
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
       setPhase("error");
@@ -32,11 +42,6 @@ export function SelfieOptional({ onClose }: { onClose(): void }) {
       });
       streamRef.current = stream;
       setPhase("live");
-      const video = videoRef.current;
-      if (video) {
-        video.srcObject = stream;
-        void video.play().catch(() => undefined);
-      }
     } catch {
       setPhase("error");
       setNote("Camera nahi khula. Skip karo, koi baat nahi.");
@@ -86,11 +91,16 @@ export function SelfieOptional({ onClose }: { onClose(): void }) {
       </h2>
       <p className="gate-lede">Sirf is phone par rahegi. Upload nahi hoti.</p>
       <div className="selfie-ring">
-        {phase === "live" ? (
-          <video ref={videoRef} className="selfie-video" muted playsInline autoPlay aria-label="Camera preview" />
-        ) : null}
+        <video
+          ref={videoRef}
+          className={`selfie-video ${phase === "live" ? "is-on" : ""}`}
+          muted
+          playsInline
+          autoPlay
+          aria-hidden={phase !== "live"}
+        />
         {phase === "shot" && shot ? (
-          <img src={shot} alt="Tumhari chalni selfie, is phone par hi" className="selfie-video" />
+          <img src={shot} alt="Tumhari chalni selfie, is phone par hi" className="selfie-shot" />
         ) : null}
         {phase !== "live" && phase !== "shot" ? <div className="selfie-empty" /> : null}
         <div className="chalni-ring-mesh selfie-mesh" />
