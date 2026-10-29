@@ -16,17 +16,24 @@ interface Props {
 
 const FILE_NAME = `karva-chauth-${new Date().getFullYear()}.png`;
 
-/** Keepsake card overlay with Share, Play again, Switch side, and an optional chalni selfie. */
+/**
+ * Last beat is the chalni selfie. A photo makes a named share card;
+ * skip makes the same card without a name.
+ */
 export function Finale({ flow, name, onReplay, onSwitch }: Props) {
+  const [step, setStep] = useState<"chalni" | "card">("chalni");
+  const [selfie, setSelfie] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [selfie, setSelfie] = useState(false);
+  const closing = line(closingLineId(flow));
+  const cardName = selfie ? name : "";
 
   useEffect(() => {
+    if (step !== "card") return;
     let alive = true;
     let objectUrl: string | null = null;
-    void drawKeepsake(name, line(closingLineId(flow))).then((result) => {
+    void drawKeepsake(cardName, closing, selfie).then((result) => {
       if (!alive || !result) return;
       objectUrl = URL.createObjectURL(result);
       setBlob(result);
@@ -36,7 +43,7 @@ export function Finale({ flow, name, onReplay, onSwitch }: Props) {
       alive = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [flow, name]);
+  }, [step, cardName, closing, selfie]);
 
   const download = () => {
     if (!url) return;
@@ -76,18 +83,31 @@ export function Finale({ flow, name, onReplay, onSwitch }: Props) {
       transition={{ duration: 0.9 }}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="finale-title"
+      aria-labelledby={step === "chalni" ? "selfie-title" : "finale-title"}
     >
-      <h2 id="finale-title" className="sr-only">
-        Tumhara Karva Chauth card
-      </h2>
-      {selfie ? (
-        <SelfieOptional onClose={() => setSelfie(false)} />
+      {step === "chalni" ? (
+        <SelfieOptional
+          onCaptured={(shot) => {
+            setSelfie(shot);
+            setStep("card");
+          }}
+          onSkip={() => {
+            setSelfie(null);
+            setStep("card");
+          }}
+        />
       ) : (
         <>
+          <h2 id="finale-title" className="sr-only">
+            Tumhara Karva Chauth card
+          </h2>
           <div className="keepsake-frame">
             {url ? (
-              <img src={url} alt={`Karva Chauth card${name ? ` for ${name}` : ""}`} className="keepsake-img" />
+              <img
+                src={url}
+                alt={`Karva Chauth card${cardName ? ` for ${cardName}` : ""}`}
+                className="keepsake-img"
+              />
             ) : (
               <div className="keepsake-wait">Card ban raha hai…</div>
             )}
@@ -104,9 +124,6 @@ export function Finale({ flow, name, onReplay, onSwitch }: Props) {
                 {flow === "boy" ? "Ladki ki taraf se khelo" : "Ladke ki taraf se khelo"}
               </button>
             </div>
-            <button type="button" className="text-button" onClick={() => setSelfie(true)}>
-              Chalni selfie
-            </button>
             <SponsorCard />
             {note ? (
               <p className="finale-note" role="status">

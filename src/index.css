@@ -1335,6 +1335,10 @@ a.primary-button {
   background: #070a1a;
 }
 
+.selfie-ring-lg {
+  width: min(84cqw, 340px);
+}
+
 .selfie-video {
   position: absolute;
   inset: 0;
@@ -1377,6 +1381,12 @@ a.primary-button {
   min-height: 56px;
   width: 100%;
   font-size: 1rem;
+}
+
+.selfie-cta {
+  min-height: 68px;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
 }
 
 .sponsor {

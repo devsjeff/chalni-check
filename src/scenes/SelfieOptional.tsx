@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Optional chalni selfie, only after the finale. Camera never starts on its own.
+ * Last-step chalni selfie. Camera never starts on its own.
  * The still stays on this device; nothing is uploaded.
  * Video stays mounted so getUserMedia can attach after the live phase paints.
  */
-export function SelfieOptional({ onClose }: { onClose(): void }) {
+export function SelfieOptional({
+  onCaptured,
+  onSkip,
+}: {
+  onCaptured(dataUrl: string): void;
+  onSkip(): void;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [phase, setPhase] = useState<"ask" | "live" | "shot" | "error">("ask");
-  const [shot, setShot] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"ask" | "live" | "error">("ask");
   const [note, setNote] = useState("");
 
   const stop = () => {
@@ -63,34 +68,24 @@ export function SelfieOptional({ onClose }: { onClose(): void }) {
     ctx.translate(size, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, sx, sy, side, side, 0, 0, size, size);
+    const shot = canvas.toDataURL("image/png");
     stop();
-    setShot(canvas.toDataURL("image/png"));
-    setPhase("shot");
+    onCaptured(shot);
   };
 
-  const download = () => {
-    if (!shot) return;
-    const link = document.createElement("a");
-    link.href = shot;
-    link.download = "karva-chauth-chalni.png";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  };
-
-  const close = () => {
+  const skip = () => {
     stop();
-    setShot(null);
-    onClose();
+    onSkip();
   };
 
   return (
     <div className="selfie" role="dialog" aria-modal="true" aria-labelledby="selfie-title">
+      <p className="eyebrow">Aakhri kadam</p>
       <h2 id="selfie-title" className="gate-title">
-        Chalni selfie
+        Apne aap ko chalni mein dekho
       </h2>
-      <p className="gate-lede">Sirf is phone par rahegi. Upload nahi hoti.</p>
-      <div className="selfie-ring">
+      <p className="gate-lede">See yourself inside the chalni. Sirf is phone par rahegi.</p>
+      <div className="selfie-ring selfie-ring-lg">
         <video
           ref={videoRef}
           className={`selfie-video ${phase === "live" ? "is-on" : ""}`}
@@ -99,10 +94,7 @@ export function SelfieOptional({ onClose }: { onClose(): void }) {
           autoPlay
           aria-hidden={phase !== "live"}
         />
-        {phase === "shot" && shot ? (
-          <img src={shot} alt="Tumhari chalni selfie, is phone par hi" className="selfie-shot" />
-        ) : null}
-        {phase !== "live" && phase !== "shot" ? <div className="selfie-empty" /> : null}
+        {phase !== "live" ? <div className="selfie-empty" /> : null}
         <div className="chalni-ring-mesh selfie-mesh" />
         <div className="chalni-ring-rim selfie-rim" />
       </div>
@@ -113,21 +105,16 @@ export function SelfieOptional({ onClose }: { onClose(): void }) {
       ) : null}
       <div className="finale-actions">
         {phase === "ask" || phase === "error" ? (
-          <button type="button" className="primary-button" onClick={() => void start()}>
-            Camera on karo
+          <button type="button" className="primary-button selfie-cta" onClick={() => void start()}>
+            Chalni mein dekho
           </button>
         ) : null}
         {phase === "live" ? (
-          <button type="button" className="primary-button" onClick={capture}>
+          <button type="button" className="primary-button selfie-cta" onClick={capture}>
             Photo lo
           </button>
         ) : null}
-        {phase === "shot" ? (
-          <button type="button" className="primary-button" onClick={download}>
-            Save karo
-          </button>
-        ) : null}
-        <button type="button" className="secondary-button selfie-skip" onClick={close}>
+        <button type="button" className="secondary-button selfie-skip" onClick={skip}>
           Skip karo
         </button>
       </div>

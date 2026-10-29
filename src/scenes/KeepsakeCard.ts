@@ -43,8 +43,67 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): st
   return lines;
 }
 
+function drawCoverCircle(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  cx: number,
+  cy: number,
+  r: number,
+) {
+  const iw = img.naturalWidth || img.width;
+  const ih = img.naturalHeight || img.height;
+  if (!iw || !ih) return;
+  const size = r * 2.12;
+  const scale = Math.max(size / iw, size / ih);
+  const w = iw * scale;
+  const h = ih * scale;
+  ctx.drawImage(img, cx - w / 2, cy - h / 2 - h * 0.06, w, h);
+}
+
+function drawChalniMesh(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(217,164,65,0.38)";
+  ctx.lineWidth = 2;
+  const span = r * 2.4;
+  for (let i = -span; i <= span; i += 16) {
+    ctx.beginPath();
+    ctx.moveTo(cx + i - r, cy - r);
+    ctx.lineTo(cx + i + r, cy + r);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + i - r, cy + r);
+    ctx.lineTo(cx + i + r, cy - r);
+    ctx.stroke();
+  }
+  const hole = ctx.createRadialGradient(cx, cy, r * 0.42, cx, cy, r);
+  hole.addColorStop(0, "rgba(7,10,26,0)");
+  hole.addColorStop(0.55, "rgba(7,10,26,0.08)");
+  hole.addColorStop(1, "rgba(7,10,26,0.45)");
+  ctx.fillStyle = hole;
+  ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(217,164,65,0.95)";
+  ctx.lineWidth = 22;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(193,18,31,0.75)";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + 16, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
 /** Draws the keepsake portrait PNG entirely in the browser. */
-export async function drawKeepsake(name: string, closing: Line): Promise<Blob | null> {
+export async function drawKeepsake(
+  name: string,
+  closing: Line,
+  selfieSrc?: string | null,
+): Promise<Blob | null> {
   await ensureFonts();
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -83,18 +142,22 @@ export async function drawKeepsake(name: string, closing: Line): Promise<Blob | 
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  const moon = await loadImage(moonImageSrc());
+  const selfie = selfieSrc ? await loadImage(selfieSrc) : null;
+  const moon = selfie ? null : await loadImage(moonImageSrc());
   ctx.save();
   ctx.beginPath();
   ctx.arc(mx, my, mr, 0, Math.PI * 2);
   ctx.clip();
-  if (moon) {
+  if (selfie) {
+    drawCoverCircle(ctx, selfie, mx, my, mr);
+  } else if (moon) {
     ctx.drawImage(moon, mx - mr * 1.06, my - mr * 1.06, mr * 2.12, mr * 2.12);
   } else {
     ctx.fillStyle = "#F4ECD8";
     ctx.fill();
   }
   ctx.restore();
+  if (selfie) drawChalniMesh(ctx, mx, my, mr);
 
   // Gold frame with a kumkum inner line.
   ctx.strokeStyle = "rgba(217,164,65,0.85)";
